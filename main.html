@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GARAGE — Навигатор по команде</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #FCF9F4;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #2C2A29;
+      line-height: 1.45;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    :root {
+      --red: #D32F2F;
+      --red-light: #FEF0F0;
+      --red-dark: #B71C1C;
+      --border: #EAE2D8;
+      --surface: #FFFFFF;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+      --muted: #6E655E;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .hero-main, .hero-side {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .brand-kicker {
+      display: inline-block;
+      background: var(--red-light);
+      color: var(--red);
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .hero-subtitle {
+      color: #6E655E;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .flow-step {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: var(--red-light);
+      padding: 10px 16px;
+      border-radius: 24px;
+      font-size: 14px;
+    }
+    .flow-step .num {
+      background: var(--red);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .top-search {
+      margin-bottom: 24px;
+    }
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 16px 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 260px;
+      padding: 14px 20px;
+      border: 1px solid var(--border);
+      border-radius: 60px;
+      font-size: 16px;
+      background: #fff;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(211,47,47,0.1);
+    }
+    .reset-btn, .all-teams-btn {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .reset-btn:hover, .all-teams-btn:hover {
+      background: var(--red-light);
+      border-color: var(--red);
+    }
+    .filter-info {
+      font-size: 13px;
+      color: #6E655E;
+      margin-top: 8px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .active-filter-badge {
+      background: var(--red-light);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .two-columns {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 110px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .main-area {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .filter-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8A7A6E;
+      margin: 20px 0 12px;
+      font-weight: 700;
+    }
+    .filter-buttons, .scenario-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .filter-btn, .scenario-btn {
+      text-align: left;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .filter-btn:hover, .scenario-btn:hover, .filter-btn.active, .scenario-btn.active {
+      background: var(--red-light);
+      border-color: var(--red);
+      transform: translateX(4px);
+    }
+    .helper-banner {
+      margin-top: 24px;
+      background: #1F1D1B;
+      color: #FFD9C9;
+      border-radius: 20px;
+      padding: 16px;
+      font-size: 13px;
+    }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .team-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .team-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--red);
+    }
+    .team-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .team-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .team-count {
+      font-size: 13px;
+      color: #6E655E;
+      margin-top: 6px;
+    }
+
+    .employees-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .employees-grid.visible {
+      display: grid;
+    }
+    .employee-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .employee-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--red);
+    }
+    .employee-card.active {
+      border-color: var(--red);
+      background: var(--red-light);
+      box-shadow: 0 8px 18px rgba(211,47,47,0.12);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .card-icon {
+      font-size: 32px;
+      background: var(--red-light);
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      flex-shrink: 0;
+    }
+    .role-tag {
+      font-size: 12px;
+      background: #F5F2EE;
+      padding: 6px 12px;
+      border-radius: 30px;
+      text-align: right;
+    }
+    .employee-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 8px 0 4px;
+    }
+    .employee-position {
+      font-size: 13px;
+      color: var(--red);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .cafe-list {
+      font-size: 12px;
+      color: #6E655E;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: var(--red);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 8px 0;
+    }
+    .back-button:hover {
+      text-decoration: underline;
+    }
+
+    .detail-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 24px;
+      margin-top: 8px;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+    .detail-panel.visible {
+      display: block;
+    }
+    .detail-header {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-name {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .detail-position {
+      font-size: 16px;
+      color: var(--red);
+      margin-top: 4px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+    }
+    .detail-tasks, .detail-questions {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .detail-tasks li, .detail-questions li {
+      padding-left: 24px;
+      position: relative;
+      font-size: 14px;
+    }
+    .detail-tasks li::before {
+      content: "•";
+      color: var(--red);
+      font-weight: bold;
+      position: absolute;
+      left: 8px;
+    }
+    .detail-questions li::before {
+      content: "→";
+      color: var(--red);
+      position: absolute;
+      left: 4px;
+    }
+    .no-questions {
+      color: #6E655E;
+      font-style: italic;
+      margin-top: 8px;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 24px;
+      color: #6E655E;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+      .two-columns {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        position: static;
+      }
+      body {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="hero-main">
+      <div class="brand-kicker">GARAGE · навигатор по команде офиса</div>
+      <h1>К кому идти с вопросом</h1>
+      <p class="hero-subtitle">Понятная карта команды управления: без путаницы, без длинных таблиц, по-человечески.</p>
+    </div>
+    <div class="hero-side">
+      <h3 style="margin-bottom: 12px;">Как пользоваться</h3>
+      <div class="flow-steps">
+        <div class="flow-step"><span class="num">1</span> Начни вводить запрос или выбери сценарий</div>
+        <div class="flow-step"><span class="num">2</span> Сразу увидишь подходящих сотрудников</div>
+        <div class="flow-step"><span class="num">3</span> Нажми на карточку — откроются задачи и вопросы</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="top-search">
+    <div class="search-card">
+      <input type="text" id="globalSearch" class="search-input" placeholder="🔍 Найти сотрудника по имени, задачам, вопросам или кафе...">
+      <button id="resetFiltersBtn" class="reset-btn">Сбросить фильтры</button>
+      <button id="showAllTeamsBtn" class="all-teams-btn">Показать все команды</button>
+    </div>
+    <div class="filter-info" id="filterInfo"></div>
+  </div>
+
+  <div class="two-columns">
+    <aside class="sidebar">
+      <div class="filter-title">📁 НАПРАВЛЕНИЕ</div>
+      <div class="filter-buttons" id="categoryFilterList"></div>
+      <div class="filter-title">⚡ БЫСТРЫЕ СЦЕНАРИИ</div>
+      <div class="scenario-buttons" id="scenarioList"></div>
+      <div class="helper-banner">
+        <strong>🤔 Не уверен, кому писать?</strong><br>
+        Сначала напиши своему Территориальному управляющему — он направит к нужному человеку.
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <button id="backToTeamsBtn" class="back-button" style="display: none;">← Вернуться к списку команд</button>
+      <div id="teamsGrid" class="teams-grid"></div>
+      <div id="employeesGrid" class="employees-grid"></div>
+      <div id="detailPanel" class="detail-panel">
+        <div class="detail-header">
+          <div class="detail-name" id="detailName"></div>
+          <div class="detail-position" id="detailPosition"></div>
+        </div>
+        <div class="section-title">✅ Зоны ответственности</div>
+        <ul class="detail-tasks" id="tasksList"></ul>
+        <div id="questionsBlock" style="margin-top: 24px; display: none;">
+          <div class="section-title">❓ Типовые вопросы</div>
+          <ul class="detail-questions" id="questionsList"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --------------------------------------------------------------
+  // ПОЛНЫЙ СПИСОК СОТРУДНИКОВ (включая команду Разработки меню)
+  // --------------------------------------------------------------
+  const employeesRaw = [
+    // Территориальные управляющие
+    { id: "yulia", name: "Юлия Стахович", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GK, GDZ, GU, GGREEN, GGMAN, GGRECH, GGTR, GNEM", tasks: ["Стандарты и процессы — внедрение и контроль соблюдения стандартов сервиса, кухни, санитарии, безопасности и брендинга на всех кафе территории", "Ежемесячное Правление с АУП кафе: анализ операционных и финансовых показателей, БДР, мероприятия", "Бюджеты, затраты, инвестиции — согласование бюджетов, контроль P&L, помощь в планировании БДР и инвестпроектов", "Управление сотрудниками: подбор Лидеров, кадровый резерв, адаптация, сложные кадровые вопросы", "Работа с жалобами и обратной связью гостей, анализ системных причин, корректирующие мероприятия", "Сложные и чрезвычайные ситуации: форс-мажоры, проверки госорганов, аварии, срывы поставок", "Коммуникация между офисом и кафе — связующее звено", "Регулярные визиты в кафе (свежий взгляд, аудит 350+ пунктов)"], questions: ["Выявлено системное отклонение от стандартов, которое Лидер не может устранить", "Есть предложения по улучшению стандартов или оптимизации процессов", "Нужно согласование затрат сверх бюджета / замена дорогого оборудования", "Конфликтная ситуация, требующая независимого разбора", "Серия однотипных жалоб (качество, сервис, чистота)", "Ситуация выходит за рамки полномочий Лидера (массовая жалоба, угроза безопасности)", "Не знаю, к кому обратиться в офисе", "Нужен свежий взгляд, объективная оценка аудита", "Требуется разъяснение новых инструкций или политик компании"] },
+    { id: "victoria", name: "Виктория Дыба", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GBSOV, GM, GUZ, GL, GGL, GVMOS, GZ, GB", tasks: ["Стандарты и процессы — внедрение и контроль соблюдения стандартов сервиса, кухни, санитарии, безопасности и брендинга на всех кафе территории", "Ежемесячное Правление с АУП кафе: анализ операционных и финансовых показателей, БДР, мероприятия", "Бюджеты, затраты, инвестиции — согласование бюджетов, контроль P&L, помощь в планировании БДР и инвестпроектов", "Управление сотрудниками: подбор Лидеров, кадровый резерв, адаптация, сложные кадровые вопросы", "Работа с жалобами и обратной связью гостей, анализ системных причин, корректирующие мероприятия", "Сложные и чрезвычайные ситуации: форс-мажоры, проверки госорганов, аварии, срывы поставок", "Коммуникация между офисом и кафе — связующее звено", "Регулярные визиты в кафе (свежий взгляд, аудит 350+ пунктов)"], questions: ["Выявлено системное отклонение от стандартов, которое Лидер не может устранить", "Есть предложения по улучшению стандартов или оптимизации процессов", "Нужно согласование затрат сверх бюджета / замена дорогого оборудования", "Конфликтная ситуация, требующая независимого разбора", "Серия однотипных жалоб (качество, сервис, чистота)", "Ситуация выходит за рамки полномочий Лидера (массовая жалоба, угроза безопасности)", "Не знаю, к кому обратиться в офисе", "Нужен свежий взгляд, объективная оценка аудита", "Требуется разъяснение новых инструкций или политик компании"] },
+    // Обучение
+    { id: "anna_fed", name: "Федосенко Анна", originalTeam: "Обучение и стандарты", category: "Команда и развитие", icon: "🛠️", position: "Руководитель обучения", tasks: ["Ведение Базы Знаний (инструкции)", "Создание и ведение обучающих материалов (курсов)", "Администрирование и ведение платформы GARAGE TEAM", "Информирование кафе об изменениях в процессе обслуживания Гостей", "Оценка уровня обученности кафе"], questions: ["Не могу найти инструкцию", "А у нас есть инструкция для этого?", "А как это делать по стандарту?", "Инструкция устарела", "Нужно добавить инструкцию", "Действительность не соответствует инструкции/курсу", "Вопрос по адаптации сотрудника", "Вопрос с обученностью", "Вопросы по платформе GARAGE TEAM", "Нужна помощь в обучении"] },
+    // Рекрутинг
+    { id: "oksana_rec", name: "Даленчук Оксана", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Рекрутер", tasks: ["Размещение вакансий на работных сайтах, соцсетях, периодических изданиях", "Обработка откликов кандидатов", "Подготовка отчетности", "Размещение поздравлений с ДР", "Подготовка корпоративных мероприятий"], questions: ["Размещено ли объявление о нашей вакансии?", "Есть ли отклики на вакансию?", "Сколько платить за размещение?", "Пропустили ДР коллеги", "Когда корпоратив?"] },
+    { id: "katia_rec", name: "Нестеренко Екатерина", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Рекрутер", tasks: ["Размещение вакансий на работных сайтах, соцсетях", "Обработка откликов", "Подготовка отчетности", "Поздравления с ДР", "Подготовка корпоративов"], questions: ["Размещено ли объявление?", "Есть отклики?", "Сколько платить за размещение?", "Когда корпоратив?"] },
+    // Кадры
+    { id: "oksana_hr", name: "Даленчук Оксана (кадры)", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Кадровый специалист", cafes: "кафе GU, GM, GK, GL", tasks: ["Прием, перевод, увольнение (ООО 'Кафе Гараж')", "Подготовка трудовых и социальных отпусков", "Подготовка характеристик и справок с места работы", "Приглашения в Битрикс", "Продление контрактов", "Графики и табели учета времени", "Персонифицированный учет (ПУ-1, ПУ-2)"], questions: ["Какие документы нужны для оформления?", "Каков остаток отпуска?", "Выслать приглашение в Битрикс", "Нужна справка с места работы"] },
+    { id: "olga_tar", name: "Тарасевич Ольга", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Кадровый специалист", tasks: ["Оформление/увольнение сотрудников ООО «ГаражИнвестмент А», «Гараж ГМБХ»", "Ведение кадрового учета", "Статистика (1-т, 12-т)", "Внесение изменений в ЗУП, отчеты", "Замена карт iiko, доступы"], questions: ["Оформление/увольнение", "Количество дней отпуска", "Приглашение в Битрикс", "Замена карты iiko", "Доступ лидерам в ЗУП", "Продление контрактов", "Неполное/полное время", "Переводы", "Справки, копии трудовой", "Практиканты", "Отстранение", "Штатное расписание", "Пенсии, воинский учет", "Табели", "ПУ-1, ПУ-2"] },
+    { id: "elena_smol", name: "Смоленская Елена", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Кадровый специалист", tasks: ["Ведение кадрового учёта, оформление, увольнение: ООО 'Гараж Франчайзинг', 'Гараж Грин Сити', 'Гараж Немига', 'Гараж Крепость', 'Машрумс Компани', 'Фабрика Качества', 'ПаречинИнвест', 'ФуллСпектр', 'Ваш Снабженец', ЧУП 'Анжик'"], questions: ["Оформление/увольнение", "Отпуска", "Приглашения в Битрикс", "Замена карты iiko", "Доступ в ЗУП", "Продление контрактов", "Неполное время", "Переводы", "Справки", "Практиканты", "Отстранение", "Штатное расписание", "Пенсии", "Воинский учет", "Табели", "ПУ-1, ПУ-2"] },
+    { id: "liza_akim", name: "Акимова Елизавета", originalTeam: "Документооборот и почта", category: "Поддержка кафе", icon: "✉️", position: "Специалист документооборота", tasks: ["Ведение реестра по передаче документов", "Получение и отправка почтовых отправлений", "Прием, регистрация корреспонденции", "Отправка ответов КЗиП", "Печать и отправка ТН по питанию корпоративных клиентов", "Заказ журналов (КЗИП, учета проверок)", "Заказ печатей/штампов/клише"], questions: ["Нужно передать документы", "Найти договор в офисе", "Отправить/получить почту", "Вопрос по корреспонденции", "Отправка ответов КЗиП", "Распечатать ТН", "Статус почтового отправления", "Заказать печать/штамп", "Заказать журнал"] },
+    { id: "anastasia_dar", name: "Дарафейчик Анастасия", originalTeam: "Юридическое сопровождение", category: "Поддержка кафе", icon: "⚖️", position: "Юрист", tasks: ["Подготовка ответов на запросы, предписания госорганов", "Претензии контрагентам и ответы на претензии", "Согласование договоров в ЭДО", "Подготовка договоров (купля-продажа, организация питания)", "Подготовка приказов на командирование"], questions: ["Пришло предписание/запрос — помогите с ответом", "Нужен договор купли-продажи оборудования или питания", "Контрагент не платит — претензия", "Согласуйте договор в ЭДО", "Оформить командировку"] },
+    // Контроль
+    { id: "natalia_kud", name: "Кудёлка Наталия", originalTeam: "Контроллинг", category: "Контроль и качество", icon: "🎥", position: "Специалист контроллинга", tasks: ["Проверки по видеоконтролю", "Проверка увольняемых сотрудников", "Анализ скидок и применения бонусов", "Разбор жалоб клиентов", "Предоставление видеозаписей по запросам милиции"], questions: ["Как оформить сделку по запросам ОВД?", "Как провести проверку по видеоконтролю?", "Согласование установки/демонтажа камер", "Вопросы по видеонаблюдению"] },
+    { id: "alena_kan", name: "Кананович Алена", originalTeam: "Команда контроля", category: "Контроль и качество", icon: "📊", position: "Аудитор", tasks: ["Проведение аудита и формирование отчета", "Внесение изменений в чек-листы", "Предоставление доступов в SI"], questions: ["Обратная связь по результатам аудита", "Предоставить доступ сотруднику к SI", "Получение справок/актов от ООО Сервис Инспектор"] },
+    // Маркетинг
+    { id: "leonid_gec", name: "Геценок Леонид", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Руководитель маркетинга", tasks: ["Общие вопросы КМ", "Согласования, помощь", "Соцсети и дизайн", "Программы GARAGE", "Планирование скидок", "Дизайн упаковки", "Запуск новых продуктов", "Ценообразование", "Видео и аудиоконтент"], questions: [] },
+    { id: "evgeniy_mat", name: "Матиевский Евгений", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Маркетолог", tasks: ["Подготовка и запуск акций", "Наружная реклама (включая внутренние носители)", "Ремонт, установка, замена вывесок", "Заказ подложек меню и счётниц", "Конкурсы и отчёты", "Контент на ТВ TO GO и прикассовых мониторах"], questions: [] },
+    { id: "inna_art", name: "Артемьева Инна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Маркетолог", tasks: ["Корпоративные клиенты (нал+безнал)", "Настройка скидок (внешних и внутренних)", "Рекламные и информационные рассылки", "Статистика и отчёты по гостям", "Выгрузка меню на сайт, МП, агрегаторы"], questions: [] },
+    { id: "tatiana_cur", name: "Цурко Татьяна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Маркетолог", tasks: ["CRM (жалобы, благодарности, отзывы)", "Информация на сайте, МП, площадках", "Отчёты по рейтингам кафе", "Опросы удовлетворенности гостей"], questions: [] },
+    { id: "katia_poligr", name: "Нестеренко Екатерина", originalTeam: "Маркетинг (полиграфия)", category: "Гости и продажи", icon: "🖨️", position: "Специалист по полиграфии", tasks: ["Всё, что касается полиграфии: заказ, изменения, стоимость"], questions: [] },
+    { id: "anastasia_diz", name: "Косточко Анастасия", originalTeam: "Маркетинг (дизайн)", category: "Гости и продажи", icon: "🎨", position: "Дизайнер", tasks: ["Дизайн"], questions: [] },
+    // Доставка
+    { id: "marina_alg", name: "Альгина Марина", originalTeam: "Доставка и контакт-центр", category: "Гости и продажи", icon: "🚚", position: "Руководитель доставки", tasks: ["Начисление ББ по опозданиям", "Вопросы КЦ: доставка, заказы, время, картография, сотрудники, записи разговоров", "Сверка с контрагентами (ФудКлаб, Картэбай, Яндекс.Еда)", "Доступ к личным кабинетам Яндекс.Еда, Яндекс.Доставка", "Отчет по времени Доставка, Бар, Кухня"], questions: ["Заказ потерялся", "Доставка идёт долго", "Нет курьера", "Доступ к Яндекс Еде", "Нужны записи разговоров КЦ"] },
+    // IT
+    { id: "yury_it", name: "Больдюсов Юрий", originalTeam: "IT", category: "Техника и системы", icon: "💻", position: "Руководитель IT", tasks: ["Закупка лицензий, железа, ПО", "Согласование закупок с лидерами", "Подготовка отчётности (KPI, простои)", "Переговоры с вендорами", "Постановка задач сисадмину", "Приоритизация заявок", "Снятие блокеров", "Организация backup знаний", "SLA с бизнесом", "Эскалация проблем", "Участие во встречах как голос IT"], questions: [] },
+    { id: "dmitry_it", name: "Загвоздкин Дмитрий", originalTeam: "IT", category: "Техника и системы", icon: "🖧", position: "Системный администратор", tasks: ["Администрирование серверов (Windows/Linux, Hyper-V, VPN)", "Настройка сетевого оборудования (роутеры, Wi-Fi)", "Контроль СХД и резервного копирования", "Мониторинг ресурсов", "Управление доменом AD, права доступа", "Антивирусы, фаерволы", "Сборка и ремонт ПК, принтеров", "Обслуживание видеонаблюдения"], questions: [] },
+    { id: "maxim_it", name: "Мороз Максим", originalTeam: "IT", category: "Техника и системы", icon: "🖥️", position: "Специалист техподдержки", tasks: ["Приём и обработка заявок в Битрикс", "Консультация по 1С, CRM, iiko, Битрикс24", "Сброс паролей, восстановление доступа", "Обучение новых сотрудников ПО", "Установка и обновление ПО", "Настройка прав в прикладных системах", "Диагностика ошибок", "Коммуникация со сторонней техподдержкой"], questions: [] },
+    { id: "anton_it", name: "Ожешко Антон", originalTeam: "IT", category: "Техника и системы", icon: "📊", position: "CRM-разработчик", tasks: ["Управление пользователями, ролями, структурой", "Настройка CRM, воронок, бизнес-процессов", "Интеграция через REST API", "Поддержка пользователей, контроль ролей", "Управление тарифом и лицензиями Битрикс24"], questions: [] },
+    // Техническое обеспечение
+    { id: "kirill_tech", name: "Кирилл Петровский", originalTeam: "Техническое обеспечение", category: "Техника и системы", icon: "🔧", position: "Инженер по оборудованию", tasks: ["Поломки оборудования", "Работа с техническим оснащением кафе", "Обслуживание и замена оборудования"], questions: ["Сломалось оборудование", "Нужен ремонт", "Замена техники"] },
+    // ------------------- КОМАНДА РАЗРАБОТКИ МЕНЮ (восстановлена) -------------------
+    { id: "vlad_fil", name: "Филиппович Владимир", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Бренд-шеф", tasks: ["Разработка блюд", "Отработка поставщиков", "Разработка тех процессов", "Разработка пф для ФК", "Создание начального ТК блюда / пф", "Формирование цен / FC", "Обучение персонала новым позициям кухни"], questions: ["Не получается приготовить блюдо по ТК", "предложения и идеи по доработке (улучшению) блюда", "найти альтернативу продукта по сниженной с-с"] },
+    { id: "valeriya_kuch", name: "Кучмистенко Валерия", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Технолог", tasks: ["Создание ТК", "Создание видеоуроков", "Выгрузка позиций на платформу ES", "Ведение номенклатуры IIKO", "Операционная работа в номенклатуре IIKO (приказы на продажу, изменение цен, правки в ТК)", "Планирование сдачи лабораторных исследований в СЭС, передача инфо кафе", "Создание ТЗ для разработки макетов / вычитка макетов", "Формирование и ввод обеденного меню (согласование, вход/выход продуктов, инфо для кафе, создание ТЗ, приказ и выгрузка)", "Операционная работа по бару (частично)"], questions: ["Снять / Добавить в продажу позицию", "Версионность (замена) товаров для отдельного кафе в блюде / пф пп", "Корректировки в ТК / видео / ES"] },
+    { id: "maria_nikit", name: "Никитина Мария", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Шеф-повар", tasks: ["Помощь в разработке блюд Бренд-шефу", "Выезд на кафе для отработки новых позиций", "Разъезд по кафе с целью наладить тех.процесс", "Разработка матрицы продуктов", "Ведение стандарта продуктов / упаковки", "Разработка подсказок на блюда", "Взаимодействие с ВС, ФК для заявок на отгрузки продуктов", "Создание задачи на обучение вводу нового меню", "Помощь в разборе жалоб", "Поддержание актуальной инфо в адаптации сотрудников кухни"], questions: ["Не получается приготовить блюдо по ТК", "Правки в подсказках", "Неправильное инфо в адаптации сотрудников кухни", "Помощь наладить процесс на кухне"] },
+    { id: "alex_ivan", name: "Иванов Александр", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Бар-менеджер", tasks: ["Ведение номенклатуры Бара", "Создание ТК для позиций бара", "Создание ТЗ для разработки макетов / вычитка макетов бара", "Формирование ввода / вывода позиций бара", "Отработка поставщиков барной продукции", "Разработка тех.процессов по бару", "Анализ с-с и FC бара", "Обучение персонала новым позициям бара", "Ввод и отработка новых позиций бара"], questions: ["Корректировки в ТК барных позиций / пф", "Операционная работа в номенклатуре IIKO (вкладка Бар)", "Предложение и идеи по доработке (улучшению) продуктов бара / напитков"] }
+  ];
+
+  const teamMapping = {
+    "Территориальный управляющий": "Территориальные управляющие",
+    "Обучение и стандарты": "Команда Обучения",
+    "Рекрутинг": "Рекрутинг",
+    "Кадровое сопровождение": "Команда юридического и кадрового сопровождения",
+    "Юридическое сопровождение": "Команда юридического и кадрового сопровождения",
+    "Документооборот и почта": "Команда юридического и кадрового сопровождения",
+    "Контроллинг": "Команда Контроля",
+    "Команда контроля": "Команда Контроля",
+    "Маркетинг": "Команда маркетинга",
+    "Маркетинг (полиграфия)": "Команда маркетинга",
+    "Маркетинг (дизайн)": "Команда маркетинга",
+    "Доставка и контакт-центр": "Доставка и КЦ",
+    "IT": "Команда IT",
+    "Техническое обеспечение": "Команда Технического обеспечения",
+    "Команда Разработки меню": "Команда Разработки меню"
+  };
+
+  const employees = employeesRaw.map(emp => ({ ...emp, team: teamMapping[emp.originalTeam] || emp.originalTeam }));
+
+  const teamsMap = new Map();
+  employees.forEach(emp => {
+    if (!teamsMap.has(emp.team)) teamsMap.set(emp.team, []);
+    teamsMap.get(emp.team).push(emp);
+  });
+  const teamsList = Array.from(teamsMap.keys()).sort();
+
+  // ------------------- СОСТОЯНИЕ -------------------
+  let state = {
+    category: "Все направления",
+    textSearch: "",
+    activeScenario: null,
+    selectedTeam: null,
+    selectedEmployeeId: null
+  };
+
+  // ------------------- СЦЕНАРИИ -------------------
+  const scenarioDefinitions = {
+    escalation: { label: "Не знаю, к кому писать", priorityIds: ["yulia", "victoria"], category: "Управление" },
+    vacation: { label: "Отпуск / оформление", priorityIds: ["oksana_hr", "olga_tar", "elena_smol"], category: "Команда и развитие" },
+    legal: { label: "Договор / предписание", priorityIds: ["anastasia_dar"], category: "Поддержка кафе" },
+    equipment: { label: "Поломка оборудования", priorityIds: ["kirill_tech", "dmitry_it", "maxim_it"], category: "Техника и системы" },
+    iiko: { label: "Касса / iiko / принтер", priorityIds: ["maxim_it", "dmitry_it", "kirill_tech"], category: "Техника и системы" },
+    guest: { label: "Акция или отзыв гостя", priorityIds: ["tatiana_cur", "evgeniy_mat", "leonid_gec", "inna_art"], category: "Гости и продажи" },
+    delivery: { label: "Доставка / заказ", priorityIds: ["marina_alg", "tatiana_cur"], category: "Гости и продажи" },
+    cameras: { label: "Камеры / видеозапись", priorityIds: ["natalia_kud", "dmitry_it"], category: "Контроль и качество" }
+  };
+
+  // ------------------- ПОИСК (стемминг + порог) -------------------
+  function normalizeText(text) {
+    return (text || "")
+      .toLowerCase()
+      .replace(/ё/g, "е")
+      .replace(/["'()]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function stemToken(token) {
+    return token
+      .replace(/(иями|ями|ами|ого|ему|ому|ыми|ими|ией|ий|ый|ой|ая|ое|ые|ие|ов|ев|ам|ям|ах|ях|ия|ья|ью|ию|ть|ти|ться|ся)$/u, "")
+      .replace(/(а|я|ы|и|е|о|у|ю)$/u, "");
+  }
+
+  function tokenize(text) {
+    return normalizeText(text)
+      .split(/[\s,./:+-]+/)
+      .map(token => stemToken(token.trim()))
+      .filter(Boolean)
+      .filter(token => token.length > 1);
+  }
+
+  function buildEmployeeHaystack(emp) {
+    return normalizeText([
+      emp.name,
+      emp.originalTeam,
+      emp.team,
+      emp.position,
+      emp.category,
+      emp.cafes || "",
+      ...(emp.tasks || []),
+      ...(emp.questions || [])
+    ].join(" "));
+  }
+
+  const synonyms = {
+    "камер": ["видео", "видеозапис", "видеонаблюден", "видеоконтрол", "овд"],
+    "видео": ["камер", "видеозапис", "видеонаблюден"],
+    "видеозапис": ["видео", "камер", "видеонаблюден"],
+    "ремонт": ["поломк", "оборудован", "замен", "техник", "слом"],
+    "поломк": ["ремонт", "оборудован", "замен"],
+    "договор": ["эдо", "претензи", "запрос", "юрист", "командировк"],
+    "предписан": ["запрос", "госорган", "ответ", "юрист"],
+    "отпуск": ["кадр", "справк", "контракт", "оформлен"],
+    "оформлен": ["увольнен", "перевод", "контракт", "кадр"],
+    "касс": ["iiko", "айко", "принтер", "чек", "ошибк"],
+    "iiko": ["касс", "айко", "принтер", "битрикс", "1с"],
+    "отзыв": ["жалоб", "crm", "гость", "рейтинг", "претензи"],
+    "жалоб": ["отзыв", "crm", "гость", "претензи"],
+    "доставк": ["заказ", "курьер", "яндекс", "еда", "кц"]
+  };
+
+  function matchTokenScore(haystack, token) {
+    if (haystack.includes(token)) return 3;
+    const syns = synonyms[token] || [];
+    for (let syn of syns) {
+      if (haystack.includes(syn)) return 2;
+    }
+    const base = token.slice(0, -1);
+    if (base.length > 2 && haystack.includes(base)) return 1;
+    return 0;
+  }
+
+  function matchesSearch(emp, searchStr) {
+    if (!searchStr.trim()) return true;
+    const haystack = buildEmployeeHaystack(emp);
+    const tokens = tokenize(searchStr);
+    if (!tokens.length) return true;
+
+    let matchedTokens = 0;
+    let totalScore = 0;
+    tokens.forEach(token => {
+      const score = matchTokenScore(haystack, token);
+      if (score > 0) matchedTokens++;
+      totalScore += score;
+    });
+
+    if (tokens.length === 1) return totalScore >= 2;
+    if (tokens.length === 2) return matchedTokens >= 1 && totalScore >= 3;
+    if (tokens.length <= 4) return matchedTokens >= 2 && totalScore >= 4;
+    return matchedTokens >= Math.ceil(tokens.length / 2) && totalScore >= 5;
+  }
+
+  function getFilteredEmployees() {
+    let result = employees.slice();
+
+    if (state.selectedTeam) {
+      result = result.filter(emp => emp.team === state.selectedTeam);
+    }
+    if (state.category !== "Все направления") {
+      result = result.filter(emp => emp.category === state.category);
+    }
+
+    if (state.activeScenario) {
+      const priorityIds = state.activeScenario.priorityIds || [];
+      result = result.filter(emp => priorityIds.includes(emp.id));
+      result.sort((a, b) => priorityIds.indexOf(a.id) - priorityIds.indexOf(b.id));
+    } else if (state.textSearch.trim()) {
+      result = result.filter(emp => matchesSearch(emp, state.textSearch));
+      result.sort((a, b) => {
+        const scoreA = tokenize(state.textSearch).reduce((s, t) => s + matchTokenScore(buildEmployeeHaystack(a), t), 0);
+        const scoreB = tokenize(state.textSearch).reduce((s, t) => s + matchTokenScore(buildEmployeeHaystack(b), t), 0);
+        return scoreB - scoreA;
+      });
+    }
+    return result;
+  }
+
+  // ------------------- UI (без изменений, но с полными данными) -------------------
+  const teamsGridDiv = document.getElementById("teamsGrid");
+  const employeesGridDiv = document.getElementById("employeesGrid");
+  const detailPanelDiv = document.getElementById("detailPanel");
+  const backBtn = document.getElementById("backToTeamsBtn");
+  const globalSearchInput = document.getElementById("globalSearch");
+  const categoryFilterList = document.getElementById("categoryFilterList");
+  const scenarioListDiv = document.getElementById("scenarioList");
+  const filterInfoDiv = document.getElementById("filterInfo");
+
+  function renderEmployees() {
+    const filtered = getFilteredEmployees();
+    if (!filtered.length) {
+      employeesGridDiv.innerHTML = `<div class="empty-state">😕 Никого не найдено. Попробуйте изменить запрос или сбросить фильтры.</div>`;
+      employeesGridDiv.classList.add("visible");
+      return;
+    }
+    employeesGridDiv.innerHTML = filtered.map(emp => `
+      <div class="employee-card ${state.selectedEmployeeId === emp.id ? 'active' : ''}" data-id="${emp.id}">
+        <div class="card-header">
+          <div class="card-icon">${emp.icon}</div>
+          <div class="role-tag">${emp.originalTeam}</div>
+        </div>
+        <div class="employee-name">${emp.name}</div>
+        <div class="employee-position">${emp.position}</div>
+        ${emp.cafes ? `<div class="cafe-list">📍 ${emp.cafes}</div>` : ""}
+      </div>
+    `).join("");
+    employeesGridDiv.classList.add("visible");
+    document.querySelectorAll("#employeesGrid .employee-card").forEach(card => {
+      card.addEventListener("click", () => {
+        state.selectedEmployeeId = card.dataset.id;
+        renderEmployees();
+        showEmployeeDetails(state.selectedEmployeeId);
+        document.querySelectorAll("#employeesGrid .employee-card").forEach(c => c.classList.remove("active"));
+        card.classList.add("active");
+      });
+    });
+  }
+
+  function renderTeams() {
+    let filteredTeams = teamsList;
+    if (state.category !== "Все направления") {
+      filteredTeams = filteredTeams.filter(t => teamsMap.get(t).some(emp => emp.category === state.category));
+    }
+    if (state.textSearch.trim() && !state.activeScenario) {
+      filteredTeams = filteredTeams.filter(t => teamsMap.get(t).some(emp => matchesSearch(emp, state.textSearch)));
+    }
+    if (filteredTeams.length === 0) {
+      teamsGridDiv.innerHTML = `<div class="empty-state">😕 Нет команд по вашему запросу</div>`;
+      return;
+    }
+    teamsGridDiv.innerHTML = filteredTeams.map(teamName => {
+      const count = teamsMap.get(teamName).length;
+      let icon = "👥";
+      if (teamName.includes("Территориальные")) icon = "🗺️";
+      else if (teamName.includes("Обучения")) icon = "🛠️";
+      else if (teamName.includes("Рекрутинг")) icon = "👥";
+      else if (teamName.includes("юридического")) icon = "📋";
+      else if (teamName.includes("Контроля")) icon = "🎥";
+      else if (teamName.includes("маркетинга")) icon = "📢";
+      else if (teamName.includes("Доставка")) icon = "🚚";
+      else if (teamName.includes("IT")) icon = "💻";
+      else if (teamName.includes("Технического")) icon = "🔧";
+      else if (teamName.includes("Разработки")) icon = "🍽️";
+      return `<div class="team-card" data-team="${teamName}"><div class="team-icon">${icon}</div><div class="team-name">${teamName}</div><div class="team-count">${count} сотрудников</div></div>`;
+    }).join("");
+    document.querySelectorAll(".team-card").forEach(card => {
+      card.addEventListener("click", () => {
+        state.selectedTeam = card.dataset.team;
+        state.activeScenario = null;
+        state.textSearch = "";
+        state.selectedEmployeeId = null;
+        globalSearchInput.value = "";
+        detailPanelDiv.classList.remove("visible");
+        updateUI();
+        renderFilters();
+      });
+    });
+  }
+
+  function showEmployeeDetails(empId) {
+    const emp = employees.find(e => e.id === empId);
+    if (!emp) return;
+    document.getElementById("detailName").innerText = emp.name;
+    document.getElementById("detailPosition").innerText = emp.position;
+    document.getElementById("tasksList").innerHTML = emp.tasks.map(t => `<li>${t}</li>`).join("");
+    const qBlock = document.getElementById("questionsBlock");
+    const qList = document.getElementById("questionsList");
+    if (emp.questions && emp.questions.length) {
+      qList.innerHTML = emp.questions.map(q => `<li>${q}</li>`).join("");
+      qBlock.style.display = "block";
+    } else {
+      qBlock.style.display = "none";
+    }
+    detailPanelDiv.classList.add("visible");
+  }
+
+  function updateUI() {
+    const hasActiveFilters = state.textSearch !== "" || state.activeScenario !== null || state.selectedTeam !== null || state.category !== "Все направления";
+    if (hasActiveFilters) {
+      teamsGridDiv.style.display = "none";
+      employeesGridDiv.classList.add("visible");
+      backBtn.style.display = "inline-flex";
+      renderEmployees();
+    } else {
+      teamsGridDiv.style.display = "grid";
+      employeesGridDiv.classList.remove("visible");
+      backBtn.style.display = "none";
+      detailPanelDiv.classList.remove("visible");
+      renderTeams();
+    }
+    updateFilterInfo();
+  }
+
+  function updateFilterInfo() {
+    const badges = [];
+    if (state.activeScenario) badges.push(`<span class="active-filter-badge">🎯 Сценарий: ${state.activeScenario.label}</span>`);
+    else if (state.textSearch.trim()) badges.push(`<span class="active-filter-badge">🔍 Поиск: ${state.textSearch}</span>`);
+    if (state.category !== "Все направления") badges.push(`<span class="active-filter-badge">📁 ${state.category}</span>`);
+    if (state.selectedTeam) badges.push(`<span class="active-filter-badge">👥 ${state.selectedTeam}</span>`);
+    filterInfoDiv.innerHTML = badges.length ? badges.join("") : "Активных фильтров нет";
+  }
+
+  function resetAllFilters() {
+    state = {
+      category: "Все направления",
+      textSearch: "",
+      activeScenario: null,
+      selectedTeam: null,
+      selectedEmployeeId: null
+    };
+    globalSearchInput.value = "";
+    detailPanelDiv.classList.remove("visible");
+    updateUI();
+    renderFilters();
+  }
+
+  function applyScenario(key) {
+    const scenario = scenarioDefinitions[key];
+    if (!scenario) return;
+    state.activeScenario = scenario;
+    state.textSearch = "";
+    state.selectedTeam = null;
+    state.selectedEmployeeId = null;
+    state.category = scenario.category || "Все направления";
+    globalSearchInput.value = "";
+    detailPanelDiv.classList.remove("visible");
+    updateUI();
+    renderFilters();
+  }
+
+  function backToTeams() {
+    if (state.selectedTeam) {
+      state.selectedTeam = null;
+      state.selectedEmployeeId = null;
+      detailPanelDiv.classList.remove("visible");
+      updateUI();
+      renderFilters();
+    } else {
+      resetAllFilters();
+    }
+  }
+
+  function renderFilters() {
+    const categories = ["Все направления", ...new Set(employees.map(e => e.category))];
+    categoryFilterList.innerHTML = categories.map(cat => `<button class="filter-btn ${state.category === cat ? 'active' : ''}" data-category="${cat}">${cat}</button>`).join("");
+    categoryFilterList.querySelectorAll("[data-category]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.category = btn.dataset.category;
+        state.activeScenario = null;
+        state.textSearch = "";
+        state.selectedTeam = null;
+        state.selectedEmployeeId = null;
+        globalSearchInput.value = "";
+        detailPanelDiv.classList.remove("visible");
+        updateUI();
+        renderFilters();
+      });
+    });
+    scenarioListDiv.innerHTML = Object.entries(scenarioDefinitions).map(([key, sc]) => `<button class="scenario-btn ${state.activeScenario?.label === sc.label ? 'active' : ''}" data-scenario="${key}">⚡ ${sc.label}</button>`).join("");
+    scenarioListDiv.querySelectorAll("[data-scenario]").forEach(btn => {
+      btn.addEventListener("click", () => applyScenario(btn.dataset.scenario));
+    });
+  }
+
+  globalSearchInput.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    state.textSearch = val;
+    state.activeScenario = null;
+    state.selectedTeam = null;
+    state.selectedEmployeeId = null;
+    state.category = "Все направления";
+    detailPanelDiv.classList.remove("visible");
+    updateUI();
+    renderFilters();
+  });
+
+  document.getElementById("resetFiltersBtn").addEventListener("click", resetAllFilters);
+  document.getElementById("showAllTeamsBtn").addEventListener("click", resetAllFilters);
+  backBtn.addEventListener("click", backToTeams);
+
+  renderFilters();
+  updateUI();
+</script>
+</body>
+</html>
