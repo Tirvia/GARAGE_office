@@ -79,6 +79,11 @@
       font-size: 15px;
       margin-bottom: 12px;
     }
+    .download-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     .download-btn {
       display: inline-flex;
       align-items: center;
@@ -106,6 +111,43 @@
       stroke: currentColor;
       stroke-width: 2;
       fill: none;
+    }
+    .help-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--red);
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .help-trigger:hover {
+      background: var(--red-light);
+      border-color: var(--red);
+      transform: translateY(-2px);
+    }
+    .tooltip {
+      position: absolute;
+      background: #1F1D1B;
+      color: #FFD9C9;
+      border-radius: 20px;
+      padding: 12px 18px;
+      font-size: 13px;
+      max-width: 360px;
+      z-index: 100;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .tooltip.visible {
+      opacity: 1;
     }
     .flow-steps {
       display: flex;
@@ -152,7 +194,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 12px;
-      justify-content: space-between;
+      justify-content: flex-start;
     }
     .search-input {
       flex: 1;
@@ -168,7 +210,7 @@
       border-color: var(--red);
       box-shadow: 0 0 0 3px rgba(211,47,47,0.1);
     }
-    .reset-btn, .all-teams-btn {
+    .reset-btn {
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 40px;
@@ -177,7 +219,7 @@
       cursor: pointer;
       transition: 0.15s;
     }
-    .reset-btn:hover, .all-teams-btn:hover {
+    .reset-btn:hover {
       background: var(--red-light);
       border-color: var(--red);
     }
@@ -275,14 +317,6 @@
       background: var(--red-light);
       border-color: var(--red);
       transform: translateX(4px);
-    }
-    .helper-banner {
-      margin-top: 24px;
-      background: #1F1D1B;
-      color: #FFD9C9;
-      border-radius: 20px;
-      padding: 16px;
-      font-size: 13px;
     }
 
     .teams-grid {
@@ -599,15 +633,19 @@
         padding: 0;
         border-radius: 0;
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        gap: 8px;
       }
       .hero-text {
         flex: 1;
       }
       .brand-kicker {
         display: inline-flex;
+        align-items: center;
+        gap: 8px;
         margin: 0;
         padding: 8px 12px;
         font-size: 12px;
@@ -615,10 +653,34 @@
         background: var(--red);
         color: #fff;
       }
+      .help-icon-mobile {
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .help-icon-mobile:hover {
+        background: rgba(255,255,255,0.35);
+      }
       h1,
       .hero-subtitle,
       .hero-side {
         display: none;
+      }
+      .download-area {
+        gap: 8px;
+      }
+      .help-trigger {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
       }
       .download-btn {
         padding: 8px 14px;
@@ -648,8 +710,7 @@
         font-size: 15px;
         padding: 13px 16px;
       }
-      .reset-btn,
-      .all-teams-btn {
+      .reset-btn {
         flex: 1;
         padding: 10px 12px;
         font-size: 13px;
@@ -714,9 +775,6 @@
       .scenario-btn:hover,
       .scenario-btn.active {
         transform: none;
-      }
-      .helper-banner {
-        display: none;
       }
       .teams-grid,
       .employees-grid.visible {
@@ -819,18 +877,24 @@
   <div class="hero">
     <div class="hero-main">
       <div class="hero-text">
-        <div class="brand-kicker">GARAGE · навигатор по команде офиса</div>
+        <div class="brand-kicker">
+          GARAGE · навигатор по команде офиса
+         
+        </div>
         <h1>К кому идти с вопросом</h1>
         <p class="hero-subtitle">Пояснения по зонам ответственности сотрудников</p>
       </div>
-      <a href="https://docs.google.com/spreadsheets/d/1f1NQEcnidS9ugo1LNzkrbSlDZqwk3IgKzkDX78JlW98/export?format=xlsx" class="download-btn" download>
-        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Скачать таблицу
-      </a>
+      <div class="download-area">
+        <div id="desktopHelpTrigger" class="help-trigger" role="button" tabindex="0">?</div>
+        <a href="https://docs.google.com/spreadsheets/d/1f1NQEcnidS9ugo1LNzkrbSlDZqwk3IgKzkDX78JlW98/export?format=xlsx" class="download-btn" download>
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Скачать таблицу
+        </a>
+      </div>
     </div>
     <div class="hero-side">
       <h3 style="margin-bottom: 12px;">Как пользоваться</h3>
@@ -841,12 +905,12 @@
       </div>
     </div>
   </div>
+  <div id="tooltip" class="tooltip">🤔 Не уверен, кому писать?<br><br>Сначала напиши своему Территориальному управляющему — он направит к нужному человеку.</div>
 
   <div class="top-search">
     <div class="search-card">
       <input type="text" id="globalSearch" class="search-input" placeholder="🔍 Найти сотрудника по имени, задачам, вопросам или кафе...">
       <button id="resetFiltersBtn" class="reset-btn">Сбросить фильтры</button>
-      <button id="showAllTeamsBtn" class="all-teams-btn">Показать все команды</button>
     </div>
     <div class="filter-info" id="filterInfo"></div>
     <div class="horizontal-categories" id="horizontalCategoryList"></div>
@@ -856,10 +920,6 @@
     <aside class="sidebar">
       <div class="filter-title">⚡ БЫСТРЫЕ СЦЕНАРИИ</div>
       <div class="scenario-buttons" id="scenarioList"></div>
-      <div class="helper-banner">
-        <strong>🤔 Не уверен, кому писать?</strong><br>
-        Сначала напиши своему Территориальному управляющему — он направит к нужному человеку.
-      </div>
     </aside>
 
     <div class="main-area">
@@ -904,7 +964,6 @@
 <script>
   // --------------------------------------------------------------
   // ПОЛНЫЙ СПИСОК СОТРУДНИКОВ (обновлён по таблице, с заглавных букв)
-  // Добавлены profileUrl для всех сотрудников
   // --------------------------------------------------------------
   const employeesRaw = [
     // Территориальные управляющие
@@ -994,7 +1053,7 @@
       "Пропустили др моего коллеги, исправьте, пожалуйста",
       "Когда у нас будет корпоратив?"
     ] },
-    // Кадры — Даленчук Оксана (кадры) — та же ссылка, что и в рекрутинге
+    // Кадры — Даленчук Оксана (кадры)
     { id: "oksana_hr", name: "Даленчук Оксана (кадры)", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Ведущий специалист по кадрам", cafes: "GU, GM, GK, GL", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/92/", tasks: [
       "Участок работы: кафе относящиеся к юр.лицу ООО \"Кафе Гараж\" (GU, GM, GK, GL)",
       "Прием, перевод, увольнение",
@@ -1337,13 +1396,12 @@
     selectedEmployeeId: null
   };
 
-  // Сценарии (без изменений)
+  // Сценарии (обновлены: переименован и удалён)
   const scenarioDefinitions = {
-    escalation: { label: "Не знаю, к кому писать", priorityIds: ["yulia", "victoria"], category: "Управление" },
+    escalation: { label: "Сложные ситуации", priorityIds: ["yulia", "victoria"], category: "Управление" },
     vacation: { label: "Отпуск / оформление", priorityIds: ["oksana_hr", "olga_tar", "elena_smol"], category: "Команда и развитие" },
     legal: { label: "Договор / предписание", priorityIds: ["anastasia_dar"], category: "Поддержка кафе" },
     equipment: { label: "Поломка оборудования", priorityIds: ["kirill_tech", "dmitry_it", "maxim_it"], category: "Техника и системы" },
-    iiko: { label: "Касса / iiko / принтер", priorityIds: ["maxim_it", "dmitry_it", "kirill_tech"], category: "Техника и системы" },
     guest: { label: "Акция или отзыв гостя", priorityIds: ["tatiana_cur", "evgeniy_mat", "leonid_gec", "inna_art"], category: "Гости и продажи" },
     delivery: { label: "Доставка / заказ", priorityIds: ["marina_alg", "tatiana_cur"], category: "Гости и продажи" },
     cameras: { label: "Камеры / видеозапись", priorityIds: ["natalia_kud", "dmitry_it"], category: "Контроль и качество" }
@@ -1396,8 +1454,6 @@
     "предписан": ["запрос", "госорган", "ответ", "юрист"],
     "отпуск": ["кадр", "справк", "контракт", "оформлен"],
     "оформлен": ["увольнен", "перевод", "контракт", "кадр"],
-    "касс": ["iiko", "айко", "принтер", "чек", "ошибк"],
-    "iiko": ["касс", "айко", "принтер", "битрикс", "1с"],
     "отзыв": ["жалоб", "crm", "гость", "рейтинг", "претензи"],
     "жалоб": ["отзыв", "crm", "гость", "претензи"],
     "доставк": ["заказ", "курьер", "яндекс", "еда", "кц"]
@@ -1476,6 +1532,41 @@
   const questionsListUl = document.getElementById("questionsList");
   const questionsSectionDiv = document.getElementById("questionsSection");
   const horizontalCatContainer = document.getElementById("horizontalCategoryList");
+  const tooltip = document.getElementById("tooltip");
+  const helpTrigger = document.getElementById("desktopHelpTrigger");
+
+  let tooltipTimeout;
+
+  function showTooltip(x, y) {
+    tooltip.style.left = `${x - 20}px`;
+    tooltip.style.top = `${y + 40}px`;
+    tooltip.classList.add("visible");
+    if (tooltipTimeout) clearTimeout(tooltipTimeout);
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove("visible");
+  }
+
+  if (helpTrigger) {
+    helpTrigger.addEventListener("mouseenter", (e) => {
+      const rect = helpTrigger.getBoundingClientRect();
+      showTooltip(rect.left + window.scrollX, rect.top + window.scrollY);
+    });
+    helpTrigger.addEventListener("mouseleave", () => {
+      tooltipTimeout = setTimeout(() => hideTooltip(), 100);
+    });
+    helpTrigger.addEventListener("focus", (e) => {
+      const rect = helpTrigger.getBoundingClientRect();
+      showTooltip(rect.left + window.scrollX, rect.top + window.scrollY);
+    });
+    helpTrigger.addEventListener("blur", () => {
+      hideTooltip();
+    });
+    helpTrigger.addEventListener("click", () => {
+      alert("🤔 Не уверен, кому писать?\n\nСначала напиши своему Территориальному управляющему — он направит к нужному человеку.");
+    });
+  }
 
   function closeDetailPanel() {
     detailPanel.classList.remove("visible");
@@ -1499,7 +1590,6 @@
       questionsSectionDiv.style.display = "none";
     }
 
-    // Управление кнопкой профиля
     if (emp.profileUrl) {
       profileLinkBtn.href = emp.profileUrl;
       profileLinkBtn.style.display = "inline-flex";
@@ -1684,7 +1774,6 @@
   });
 
   document.getElementById("resetFiltersBtn").addEventListener("click", resetAllFilters);
-  document.getElementById("showAllTeamsBtn").addEventListener("click", resetAllFilters);
   backBtn.addEventListener("click", backToTeams);
   detailCloseBtn.addEventListener("click", closeDetailPanel);
   detailBackdrop.addEventListener("click", closeDetailPanel);
