@@ -466,6 +466,38 @@
       font-weight: 500;
       margin-top: 6px;
     }
+    .detail-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .profile-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--red);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .profile-link-btn:hover {
+      background: var(--red-light);
+      border-color: var(--red);
+      transform: translateY(-1px);
+    }
+    .profile-link-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
     .detail-close-btn {
       background: #fff;
       border: 1px solid var(--border);
@@ -758,6 +790,10 @@
       .detail-position {
         font-size: 14px;
       }
+      .profile-link-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
       .detail-close-btn {
         width: 38px;
         height: 38px;
@@ -838,7 +874,17 @@
             <div class="detail-name" id="detailName"></div>
             <div class="detail-position" id="detailPosition"></div>
           </div>
-          <button id="detailCloseBtn" class="detail-close-btn" aria-label="Закрыть">×</button>
+          <div class="detail-actions">
+            <a id="profileLinkBtn" class="profile-link-btn" target="_blank" style="display: none;">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              Перейти к профилю
+            </a>
+            <button id="detailCloseBtn" class="detail-close-btn" aria-label="Закрыть">×</button>
+          </div>
         </div>
         <div class="detail-body">
           <div class="detail-section">
@@ -858,10 +904,11 @@
 <script>
   // --------------------------------------------------------------
   // ПОЛНЫЙ СПИСОК СОТРУДНИКОВ (обновлён по таблице, с заглавных букв)
+  // Добавлены profileUrl для всех сотрудников
   // --------------------------------------------------------------
   const employeesRaw = [
-    // Территориальные управляющие (данные из таблицы, одинаковые для Юлии и Виктории)
-    { id: "yulia", name: "Юлия Стахович", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GK, GDZ, GU, GGREEN, GGMAN, GGRECH, GGTR, GNEM", tasks: [
+    // Территориальные управляющие
+    { id: "yulia", name: "Юлия Стахович", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GK, GDZ, GU, GGREEN, GGMAN, GGRECH, GGTR, GNEM", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/20/", tasks: [
       "Стандарты и процессы. Внедряет и контролирует стандарты сервиса, кухни, санитарии, безопасности и брендинга на всех кафе. Обеспечивает актуальность регламентов и единообразие процессов.",
       "Ежемесячное Правление с кафе. Проводит встречи с АУП: анализирует показатели, корректирует БДР, планирует активности, помогает решать сложные вопросы.",
       "Бюджеты, затраты и инвестиции. Согласует бюджеты, контролирует P&L, помогает с годовыми БДР и инвестпроектами.",
@@ -880,7 +927,7 @@
       "Донесение проблем/предложений в офис (если непонятно к кому — к ТУ); адаптация новых инструкций; разъяснение решений; задержки в коммуникации; согласование инициатив с несколькими командами.",
       "Чувство «застревания» в рутине — нужен взгляд со стороны; объективная оценка аудита перед проверкой; диагностика атмосферы и сервиса «глазами гостя»; помощь в приоритизации улучшений."
     ] },
-    { id: "victoria", name: "Виктория Дыба", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GBSOV, GM, GUZ, GL, GGL, GVMOS, GZ, GB", tasks: [
+    { id: "victoria", name: "Виктория Дыба", originalTeam: "Территориальный управляющий", category: "Управление", icon: "🗺️", position: "Территориальный управляющий", cafes: "GBSOV, GM, GUZ, GL, GGL, GVMOS, GZ, GB", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/18/", tasks: [
       "Стандарты и процессы. Внедряет и контролирует стандарты сервиса, кухни, санитарии, безопасности и брендинга на всех кафе. Обеспечивает актуальность регламентов и единообразие процессов.",
       "Ежемесячное Правление с кафе. Проводит встречи с АУП: анализирует показатели, корректирует БДР, планирует активности, помогает решать сложные вопросы.",
       "Бюджеты, затраты и инвестиции. Согласует бюджеты, контролирует P&L, помогает с годовыми БДР и инвестпроектами.",
@@ -900,7 +947,7 @@
       "Чувство «застревания» в рутине — нужен взгляд со стороны; объективная оценка аудита перед проверкой; диагностика атмосферы и сервиса «глазами гостя»; помощь в приоритизации улучшений."
     ] },
     // Команда Обучения
-    { id: "anna_fed", name: "Федосенко Анна", originalTeam: "Обучение и стандарты", category: "Команда и развитие", icon: "🛠️", position: "Специалист по обучению", tasks: [
+    { id: "anna_fed", name: "Федосенко Анна", originalTeam: "Обучение и стандарты", category: "Команда и развитие", icon: "🛠️", position: "Специалист по обучению", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/208/", tasks: [
       "Ведение Базы Знаний (инструкции)",
       "Создание и ведение обучающих материалов (курсов)",
       "Администрирование и ведение платформы GARAGE TEAM",
@@ -920,7 +967,7 @@
       "Нужна помощь в обучении сотрудника / проработке проблемных моментов"
     ] },
     // Рекрутинг
-    { id: "oksana_rec", name: "Даленчук Оксана", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Ведущий специалист по подбору сотрудников", tasks: [
+    { id: "oksana_rec", name: "Даленчук Оксана", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Ведущий специалист по подбору сотрудников", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/92/", tasks: [
       "Размещение вакансий на \"работных\" сайтах, соц. сетях, периодических изданиях",
       "Обработка откликов кандидатов",
       "Подготовка отчетности",
@@ -933,7 +980,7 @@
       "Пропустили др моего коллеги, исправьте, пожалуйста",
       "Когда у нас будет корпоратив?"
     ] },
-    { id: "katia_rec", name: "Нестеренко Екатерина", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Специалист по подбору сотрудников", tasks: [
+    { id: "katia_rec", name: "Нестеренко Екатерина", originalTeam: "Рекрутинг", category: "Команда и развитие", icon: "👥", position: "Специалист по подбору сотрудников", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/94/", tasks: [
       "Размещение вакансий на \"работных\" сайтах, соц. сетях, периодических изданиях",
       "Обработка откликов кандидатов",
       "Подготовка отчетности",
@@ -946,8 +993,8 @@
       "Пропустили др моего коллеги, исправьте, пожалуйста",
       "Когда у нас будет корпоратив?"
     ] },
-    // Кадры — Даленчук Оксана (кадры)
-    { id: "oksana_hr", name: "Даленчук Оксана (кадры)", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Ведущий специалист по кадрам", cafes: "GU, GM, GK, GL", tasks: [
+    // Кадры — Даленчук Оксана (кадры) — та же ссылка, что и в рекрутинге
+    { id: "oksana_hr", name: "Даленчук Оксана (кадры)", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Ведущий специалист по кадрам", cafes: "GU, GM, GK, GL", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/92/", tasks: [
       "Участок работы: кафе относящиеся к юр.лицу ООО \"Кафе Гараж\" (GU, GM, GK, GL)",
       "Прием, перевод, увольнение",
       "Подготовка трудовых и социальных отпусков",
@@ -962,7 +1009,7 @@
       "Можно ли выслать приглашение сотруднику в Битрикс и пр."
     ] },
     // Тарасевич Ольга
-    { id: "olga_tar", name: "Тарасевич Ольга", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Специалист по кадрам", cafes: "GRech, GVMos, GGTr, Общее", tasks: [
+    { id: "olga_tar", name: "Тарасевич Ольга", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Специалист по кадрам", cafes: "GRech, GVMos, GGTr, Общее", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/102/", tasks: [
       "Оформление сотрудников ООО «ГаражИнвестмент А», ООО «Гараж ГМБХ»",
       "Увольнение сотрудников ООО «ГаражИнвестмент А», ООО «Гараж ГМБХ»",
       "Ведение кадрового учета ООО «ГаражИнвестмент», ООО «Гараж ГМБХ»",
@@ -988,7 +1035,7 @@
       "Внесение изменений в ЗУП, в том числе констант, формирование отчетов, списков из ЗУПа"
     ] },
     // Смоленская Елена
-    { id: "elena_smol", name: "Смоленская Елена", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Специалист по кадрам", cafes: "GZ, GGl, GDz, GReen, GNem, GBSov, GB", tasks: [
+    { id: "elena_smol", name: "Смоленская Елена", originalTeam: "Кадровое сопровождение", category: "Команда и развитие", icon: "📋", position: "Специалист по кадрам", cafes: "GZ, GGl, GDz, GReen, GNem, GBSov, GB", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/100/", tasks: [
       "Ведение кадрового учёта, оформление, увольнение сотрудников: ООО \"Гараж Франчайзинг\", ООО \"Гараж Грин Сити\", ООО \"Гараж Немига\", ООО \"Гараж Крепость\", ООО \"Машрумс Компани\", ООО \"Фабрика Качества\", ООО \"ПаречинИнвест\", ООО \"ФуллСпектр\", ООО \"Ваш Снабженец\", ЧУП \"Анжик\""
     ], questions: [
       "Все вопросы по оформлениям, увольнениям",
@@ -1008,8 +1055,8 @@
       "Вопросы заполнения графиков, табелей учета рабочего времени",
       "Вопросы персонифицированного учета (формы ПУ-1, ПУ-2)"
     ] },
-    // Акимова Елизавета (документооборот)
-    { id: "liza_akim", name: "Акимова Елизавета", originalTeam: "Документооборот и почта", category: "Поддержка кафе", icon: "✉️", position: "Офис-менеджер", tasks: [
+    // Акимова Елизавета
+    { id: "liza_akim", name: "Акимова Елизавета", originalTeam: "Документооборот и почта", category: "Поддержка кафе", icon: "✉️", position: "Офис-менеджер", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/84/", tasks: [
       "Ведение реестра по передаче документов",
       "Получение и отправка почтовых отправлений",
       "Прием, регистрация и распределение входящей/исходящей корреспонденции",
@@ -1029,8 +1076,8 @@
       "Нужно заказать новую печать/штамп (заменить старый)",
       "Нужно заказать новый журнал в кафе"
     ] },
-    // Дарафейчик Анастасия (юрист)
-    { id: "anastasia_dar", name: "Дарафейчик Анастасия", originalTeam: "Юридическое сопровождение", category: "Поддержка кафе", icon: "⚖️", position: "Юрист", tasks: [
+    // Дарафейчик Анастасия
+    { id: "anastasia_dar", name: "Дарафейчик Анастасия", originalTeam: "Юридическое сопровождение", category: "Поддержка кафе", icon: "⚖️", position: "Юрист", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/22/", tasks: [
       "Подготовка ответов на запросы, предписания, представления государственных органов и иных организаций",
       "Подготовка претензий контрагентам, подготовка ответов на входящие претензии",
       "Согласование договоров в ЭДО",
@@ -1044,7 +1091,7 @@
       "Нужно оформить командировку сотрудника/меня"
     ] },
     // Контроллинг — Кудёлка Наталия
-    { id: "natalia_kud", name: "Кудёлка Наталия", originalTeam: "Контроллинг", category: "Контроль и качество", icon: "🎥", position: "Заместитель директора по контролю качества", tasks: [
+    { id: "natalia_kud", name: "Кудёлка Наталия", originalTeam: "Контроллинг", category: "Контроль и качество", icon: "🎥", position: "Заместитель директора по контролю качества", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/1326/", tasks: [
       "Проведение проверок по видеоконтролю",
       "Проверка увольняемых сотрудников",
       "Анализ правильности пробития скидок и применения ББ",
@@ -1057,7 +1104,7 @@
       "Иные вопросы связанные с работой по видеонаблюдению"
     ] },
     // Команда Контроля — Кананович Алена
-    { id: "alena_kan", name: "Кананович Алена", originalTeam: "Команда контроля", category: "Контроль и качество", icon: "📊", position: "Менеджер по контролю качества", tasks: [
+    { id: "alena_kan", name: "Кананович Алена", originalTeam: "Команда контроля", category: "Контроль и качество", icon: "📊", position: "Менеджер по контролю качества", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/1096/", tasks: [
       "Проведение аудита и формирование отчета",
       "Внесение изменений в чек-листы",
       "Предоставление доступов в SI по запросам"
@@ -1067,7 +1114,7 @@
       "Получение справок, актов, актов сверки и иных документов от ООО Сервис Инспектор (РФ)"
     ] },
     // Маркетинг
-    { id: "leonid_gec", name: "Геценок Леонид", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Лидер Команды Маркетинг", tasks: [
+    { id: "leonid_gec", name: "Геценок Леонид", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Лидер Команды Маркетинг", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/12/", tasks: [
       "Общие вопросы, связанные с функционалом КМ",
       "Согласования, помощь, информация",
       "Вопросы по соцсетям и дизайну",
@@ -1078,7 +1125,7 @@
       "Ценообразование",
       "Видео и аудиоконтент"
     ], questions: [] },
-    { id: "evgeniy_mat", name: "Матиевский Евгений", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", tasks: [
+    { id: "evgeniy_mat", name: "Матиевский Евгений", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/96/", tasks: [
       "Подготовка и запуск акций",
       "Наружная реклама (включая внутренние носители кафе)",
       "Ремонт, установка, замена вывесок и рекламных конструкций",
@@ -1086,25 +1133,25 @@
       "Вопросы по конкурсам и отчётам",
       "Контент на ТВ TO GO и прикассовых мониторах"
     ], questions: [] },
-    { id: "inna_art", name: "Артемьева Инна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", tasks: [
+    { id: "inna_art", name: "Артемьева Инна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/86/", tasks: [
       "Корпоративные клиенты (нал + безнал) и вопросы связанные с ними",
       "Настройка скидок (внешних и внутренних (для сотрудников))",
       "Рекламные и информационные рассылки",
       "Статистика и отчёты по Гостям",
       "Выгрузка меню сайт, МП, агрегаторы"
     ], questions: [] },
-    { id: "tatiana_cur", name: "Цурко Татьяна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", tasks: [
+    { id: "tatiana_cur", name: "Цурко Татьяна", originalTeam: "Маркетинг", category: "Гости и продажи", icon: "📢", position: "Специалист по маркетингу", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/1004/", tasks: [
       "CRM (жалобы, благодарности, отзывы, рекомендации)",
       "Информация на сайте, в МП, площадках",
       "Отчёты по рейтингам кафе на площадках",
       "Опросы удовлетворенности Гостей"
     ], questions: [] },
-    { id: "katia_poligr", name: "Нестеренко Екатерина", originalTeam: "Маркетинг (полиграфия)", category: "Гости и продажи", icon: "🖨️", position: "Специалист по полиграфии", tasks: [
+    { id: "katia_poligr", name: "Нестеренко Екатерина", originalTeam: "Маркетинг (полиграфия)", category: "Гости и продажи", icon: "🖨️", position: "Специалист по полиграфии", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/94/", tasks: [
       "Всё, что касается полиграфии: заказ, изменения, стоимость"
     ], questions: [] },
-    { id: "anastasia_diz", name: "Косточко Анастасия", originalTeam: "Маркетинг (дизайн)", category: "Гости и продажи", icon: "🎨", position: "Дизайнер", tasks: ["Дизайн"], questions: [] },
+    { id: "anastasia_diz", name: "Косточко Анастасия", originalTeam: "Маркетинг (дизайн)", category: "Гости и продажи", icon: "🎨", position: "Дизайнер", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/16/", tasks: ["Дизайн"], questions: [] },
     // Доставка и КЦ
-    { id: "marina_alg", name: "Альгина Марина", originalTeam: "Доставка и колл-центр", category: "Гости и продажи", icon: "🚚", position: "Лидер колл-центра", tasks: [
+    { id: "marina_alg", name: "Альгина Марина", originalTeam: "Доставка и колл-центр", category: "Гости и продажи", icon: "🚚", position: "Лидер колл-центра", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/226/", tasks: [
       "Начисление ББ по опозданиям.",
       "Вопросы по КЦ: - доставка - заказы - время доставки - картография - сотрудники - записи разговоров",
       "Сверка и ведение отчетности по контрагентам: - ФудКлаб - Картэбай - Яндекс.Еда - Яндекс.Доставка",
@@ -1112,7 +1159,7 @@
       "Отчет по времени Доставка, Бар, Кухня."
     ], questions: [] },
     // IT
-    { id: "yury_it", name: "Больдюсов Юрий", originalTeam: "IT", category: "Техника и системы", icon: "💻", position: "Лидер Команды IT", tasks: [
+    { id: "yury_it", name: "Больдюсов Юрий", originalTeam: "IT", category: "Техника и системы", icon: "💻", position: "Лидер Команды IT", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/32/", tasks: [
       "Закупка лицензий, железа, ПО",
       "Согласование закупок с лидерами",
       "Подготовка отчётности (KPI, простои, инциденты).",
@@ -1125,7 +1172,7 @@
       "Эскалация проблем выше (если нужно дополнительное финансирование).",
       "Участие во встречах как голос IT."
     ], questions: [] },
-    { id: "dmitry_it", name: "Загвоздкин Дмитрий", originalTeam: "IT", category: "Техника и системы", icon: "🖧", position: "Системный администратор", tasks: [
+    { id: "dmitry_it", name: "Загвоздкин Дмитрий", originalTeam: "IT", category: "Техника и системы", icon: "🖧", position: "Системный администратор", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/1240/", tasks: [
       "Администрирование серверов (Windows/Linux, Hyper-V/VMware, прокси, VPN).",
       "Настройка и ремонт сетевого оборудования (роутеры, коммутаторы, Wi-Fi, межсетевые экраны).",
       "Контроль СХД и резервного копирования (назначение политик бэкапов, проверка восстановления).",
@@ -1136,7 +1183,7 @@
       "Сборка и ремонт ПК, ноутбуков, принтеров, сканеров.",
       "Обслуживание видеонаблюдения"
     ], questions: [] },
-    { id: "maxim_it", name: "Мороз Максим", originalTeam: "IT", category: "Техника и системы", icon: "🖥️", position: "Специалист техподдержки", tasks: [
+    { id: "maxim_it", name: "Мороз Максим", originalTeam: "IT", category: "Техника и системы", icon: "🖥️", position: "Специалист техподдержки", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/106/", tasks: [
       "Приём и обработка заявок в Битрикс (почта, мессенджер, телефон).",
       "Консультация пользователей по работе в 1С, CRM, iiko, Битрикс24",
       "Сброс паролей, восстановление доступа к учётным записям (но не в AD — это к сисадмину).",
@@ -1146,15 +1193,15 @@
       "Первичная диагностика ошибок (лог-файлы, воспроизведение бага).",
       "Коммуникация со сторонней техподдержкой (ККС, Fonmix) (пишем обращение, прикладываем скрины, дампы)."
     ], questions: [] },
-    { id: "anton_it", name: "Ожешко Антон", originalTeam: "IT", category: "Техника и системы", icon: "📊", position: "CRM-администратор (Битрикс)", tasks: [
+    { id: "anton_it", name: "Ожешко Антон", originalTeam: "IT", category: "Техника и системы", icon: "📊", position: "CRM-администратор (Битрикс)", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/8/", tasks: [
       "Управление пользователями, ролями и структурой компании.",
       "Настройка CRM, воронок, бизнес-процессов, форм, отчётов и дашбордов.",
       "Интеграция с внешними сервисами (телефония, почта, 1С, сайт) через интерфейс или REST API.",
       "Поддержка пользователей и контроль соблюдения ролевой модели доступа.",
       "Управление тарифом и лицензиями, настройка внешнего вида портала."
     ], questions: [] },
-    // Техническое обеспечение (КТО) — Петровский Кирилл
-    { id: "kirill_tech", name: "Кирилл Петровский", originalTeam: "Техническое обеспечение", category: "Техника и системы", icon: "🔧", position: "Главный инженер", tasks: [
+    // Техническое обеспечение (КТО)
+    { id: "kirill_tech", name: "Кирилл Петровский", originalTeam: "Техническое обеспечение", category: "Техника и системы", icon: "🔧", position: "Главный инженер", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/98/", tasks: [
       "Обеспечение бесперебойной и безопасной эксплуатации оборудования, инженерных систем и инфраструктуры.",
       "Контроль техсостояния объектов, организация диагностики, ремонта и профилактического обслуживания.",
       "Анализ причин неисправностей и внедрение мер по повышению надежности оборудования.",
@@ -1190,8 +1237,8 @@
       "Подрядчики выполнили работу нормально: контроль качества внешних исполнителей.",
       "Что показывать на проверке или аудите: документы, журналы, соблюдение требований."
     ] },
-    // КРМ — разработка меню
-    { id: "vlad_fil", name: "Филиппович Владимир", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Бренд-шеф", tasks: [
+    // КРМ
+    { id: "vlad_fil", name: "Филиппович Владимир", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Бренд-шеф", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/194/", tasks: [
       "Разработка блюд",
       "Отработка поставщиков",
       "Разработка тех процессов",
@@ -1204,7 +1251,7 @@
       "Предложения и идеи по доработке (улучшению) блюда",
       "Найти альтернативу продукта по сниженной с-с"
     ] },
-    { id: "valeriya_kuch", name: "Кучмистенко Валерия", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Технолог", tasks: [
+    { id: "valeriya_kuch", name: "Кучмистенко Валерия", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Технолог", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/196/", tasks: [
       "Создание ТК",
       "Создание видеоуроков",
       "Выгрузка позиций на платформу ES",
@@ -1219,7 +1266,7 @@
       "Версионность (замена) товаров для отдельного кафе в блюде / пф пп",
       "Корректировки в ТК / видео / ES"
     ] },
-    { id: "maria_nikit", name: "Никитина Мария", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Менеджер по производству", tasks: [
+    { id: "maria_nikit", name: "Никитина Мария", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Менеджер по производству", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/198/", tasks: [
       "Помощь в разработке блюд Бренд-шефу",
       "Выезд на кафе для отработки новых позиций",
       "Разъезд по кафе с целью наладить тех.процесс",
@@ -1236,14 +1283,14 @@
       "Неправильное инфо в адаптации сотрудников кухни",
       "Помощь наладить процесс на кухне"
     ] },
-    { id: "alex_ivan", name: "Иванов Александр", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Шеф-бармен", tasks: [
+    { id: "alex_ivan", name: "Иванов Александр", originalTeam: "Команда Разработки меню", category: "Кухня и разработка", icon: "🍽️", position: "Шеф-бармен", profileUrl: "https://cafegarage.bitrix24.by/company/personal/user/1026/", tasks: [
       "Ведение номенклатуры Бара",
       "Создание ТК для позиций бара",
       "Создание ТЗ для разработки макетов / вычитка макетов бара",
       "Формирование ввода / вывода позиций бара",
       "Отработка поставщиков барной продукции",
       "Разработка тех.процессов по бару",
-      "Анализ себестоимости и FC бара",
+      "Анализ с-с и FC бара",
       "Обучение персонала новым позициям бара",
       "Ввод и отработка новых позиций бара"
     ], questions: [
@@ -1289,7 +1336,7 @@
     selectedEmployeeId: null
   };
 
-  // Сценарии
+  // Сценарии (без изменений)
   const scenarioDefinitions = {
     escalation: { label: "Не знаю, к кому писать", priorityIds: ["yulia", "victoria"], category: "Управление" },
     vacation: { label: "Отпуск / оформление", priorityIds: ["oksana_hr", "olga_tar", "elena_smol"], category: "Команда и развитие" },
@@ -1421,6 +1468,7 @@
   const detailPanel = document.getElementById("detailPanel");
   const detailBackdrop = document.getElementById("detailBackdrop");
   const detailCloseBtn = document.getElementById("detailCloseBtn");
+  const profileLinkBtn = document.getElementById("profileLinkBtn");
   const detailNameSpan = document.getElementById("detailName");
   const detailPositionSpan = document.getElementById("detailPosition");
   const tasksListUl = document.getElementById("tasksList");
@@ -1448,6 +1496,14 @@
       questionsSectionDiv.style.display = "block";
     } else {
       questionsSectionDiv.style.display = "none";
+    }
+
+    // Управление кнопкой профиля
+    if (emp.profileUrl) {
+      profileLinkBtn.href = emp.profileUrl;
+      profileLinkBtn.style.display = "inline-flex";
+    } else {
+      profileLinkBtn.style.display = "none";
     }
 
     detailPanel.classList.add("visible");
