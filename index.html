@@ -1387,6 +1387,16 @@
   });
   const teamsList = Array.from(teamsMap.keys()).sort();
 
+  // Функция для склонения слова "сотрудник"
+  function getEmployeeCountText(count) {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return `${count} сотрудников`;
+    if (lastDigit === 1) return `${count} сотрудник`;
+    if (lastDigit >= 2 && lastDigit <= 4) return `${count} сотрудника`;
+    return `${count} сотрудников`;
+  }
+
   // Состояние
   let state = {
     category: "Все направления",
@@ -1654,7 +1664,7 @@
       else if (teamName.includes("IT")) icon = "💻";
       else if (teamName.includes("Технического")) icon = "🔧";
       else if (teamName.includes("Разработки")) icon = "🍽️";
-      return `<div class="team-card" data-team="${teamName}"><div class="team-icon">${icon}</div><div class="team-name">${teamName}</div><div class="team-count">${count} сотрудников</div></div>`;
+      return `<div class="team-card" data-team="${teamName}"><div class="team-icon">${icon}</div><div class="team-name">${teamName}</div><div class="team-count">${getEmployeeCountText(count)}</div></div>`;
     }).join("");
     document.querySelectorAll(".team-card").forEach(card => {
       card.addEventListener("click", () => {
