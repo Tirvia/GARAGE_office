@@ -1,5 +1,3 @@
-Вот исправленный HTML-файл, где имена сотрудников приведены к единому формату «Фамилия Имя»:
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -1076,24 +1074,91 @@
   function normalizeText(text) {
     return (text || "").toLowerCase().replace(/ё/g, "е").replace(/["'()]/g, " ").replace(/\s+/g, " ").trim();
   }
+
+  // Слова, которые не нужно стеммировать (не склоняются или короткие значимые)
+  const NO_STEM_WORDS = new Set(["меню", "iiko", "crm", "erp", "эдо", "тк", "фк", "пф"]);
+
   function stemToken(token) {
-    return token.replace(/(иями|ями|ами|ого|ему|ому|ыми|ими|ией|ий|ый|ой|ая|ое|ые|ие|ов|ев|ам|ям|ах|ях|ия|ья|ью|ию|ть|ти|ться|ся)$/u, "").replace(/(а|я|ы|и|е|о|у|ю)$/u, "");
+    if (NO_STEM_WORDS.has(token)) return token;
+    // Не трогаем слова длиной ≤ 3 символа — слишком короткие, стеммер их ломает
+    if (token.length <= 3) return token;
+    const stemmed = token
+      .replace(/(иями|ями|ами|ого|ему|ому|ыми|ими|ией|ий|ый|ой|ая|ое|ые|ие|ов|ев|ам|ям|ах|ях|ия|ья|ью|ию|ть|ти|ться|ся)$/u, "")
+      .replace(/(а|я|ы|и|е|о|у|ю)$/u, "");
+    // Если после стеммирования осталось слишком мало — берём оригинал
+    return stemmed.length >= 3 ? stemmed : token;
   }
+
   function tokenize(text) {
     return normalizeText(text).split(/[\s,./:+-]+/).map(t => stemToken(t.trim())).filter(Boolean).filter(t => t.length > 1);
   }
+
   function buildEmployeeHaystack(emp) {
-    return normalizeText([emp.name, emp.originalTeam, emp.team, emp.position, emp.category, emp.cafes || "", ...(emp.tasks || []), ...(emp.questions || [])].join(" "));
+    // Имя, команда, должность, категория получают отдельный «тяжёлый» блок (повторяем для веса)
+    const core = [emp.name, emp.originalTeam, emp.team, emp.position, emp.category, emp.cafes || ""];
+    const details = [...(emp.tasks || []), ...(emp.questions || [])];
+    return normalizeText([...core, ...core, ...details].join(" "));
   }
-  const synonyms = { "камер": ["видео"], "ремонт": ["поломк"], "договор": ["эдо"], "отпуск": ["кадр"], "отзыв": ["жалоб"], "доставк": ["заказ"], "инструкц": ["стандарт"], "маркетинг": ["акц"], "управлен": ["стратег"], "бюджет": ["финанс"], "вакансий": ["рекрутинг"], "аудит": ["проверк"], "меню": ["блюд"], "сайт": ["выгрузк"], "почт": ["письм"], "документ": ["справк"], "it": ["компьютер"], "доступ": ["пароль"] };
+
+  // Синонимы: ключ → что ещё искать в стоге сена.
+  // ВАЖНО: значения должны быть достаточно специфичными, чтобы не «пробивать» нерелевантных
+  const synonyms = {
+    "камер":      ["видеозапис", "видеонаблюден"],
+    "ремонт":     ["поломк", "неисправност"],
+    "поломк":     ["ремонт", "неисправност"],
+    "договор":    ["эдо", "юридическ"],
+    "отпуск":     ["кадров", "отгул"],
+    "отзыв":      ["жалоб", "гост"],
+    "жалоб":      ["отзыв", "гост"],
+    "доставк":    ["заказ", "курьер"],
+    "заказ":      ["доставк"],
+    "инструкц":   ["стандарт", "регламент"],
+    "стандарт":   ["инструкц", "регламент"],
+    "маркетинг":  ["акц", "реклам"],
+    "акц":        ["маркетинг", "реклам"],
+    "бюджет":     ["финанс", "расход"],
+    "финанс":     ["бюджет"],
+    "вакансий":   ["рекрутинг", "подбор"],
+    "рекрутинг":  ["вакансий", "подбор"],
+    "аудит":      ["проверк", "контрол"],
+    // "меню" → только «разработка меню», а не все где упоминается «блюд»
+    "меню":       ["разработк меню", "команда разработк"],
+    "сайт":       ["выгрузк"],
+    "почт":       ["письм", "документооборот"],
+    "документ":   ["справк", "кадров"],
+    "доступ":     ["парол", "учётн"],
+    "парол":      ["доступ", "учётн"],
+    "it":         ["компьютер", "техподдержк"],
+    "компьютер":  ["it", "техподдержк"],
+    "обучени":    ["стандарт", "адаптац"],
+    "жалоб":      ["отзыв", "конфликт"],
+    "контрол":    ["аудит", "проверк"],
+    "кадр":       ["hr", "персонал", "отпуск"],
+    "hr":         ["кадр", "персонал"]
+  };
+
   function matchTokenScore(haystack, token) {
+    // Точное вхождение токена как отдельного слова — максимальный балл
+    const wordBoundary = new RegExp(`(^|\\s)${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`);
+    if (wordBoundary.test(haystack)) return 4;
+    // Просто вхождение подстроки
     if (haystack.includes(token)) return 3;
+    // Синонимы
     const syns = synonyms[token] || [];
-    for (let syn of syns) if (haystack.includes(syn)) return 2;
-    const base = token.slice(0, -1);
-    if (base.length > 2 && haystack.includes(base)) return 1;
+    for (let syn of syns) {
+      if (syn.includes(" ")) {
+        // Мультислово: все части должны присутствовать рядом
+        if (haystack.includes(syn)) return 2;
+      } else if (haystack.includes(syn)) return 2;
+    }
+    // Нечёткое: корень минус 1 символ (только для длинных токенов)
+    if (token.length >= 5) {
+      const base = token.slice(0, -1);
+      if (base.length > 3 && haystack.includes(base)) return 1;
+    }
     return 0;
   }
+
   function matchesSearch(emp, searchStr) {
     if (!searchStr.trim()) return true;
     const haystack = buildEmployeeHaystack(emp);
@@ -1105,10 +1170,11 @@
       if (score > 0) matchedTokens++;
       totalScore += score;
     });
-    if (tokens.length === 1) return totalScore >= 2;
-    if (tokens.length === 2) return matchedTokens >= 1 && totalScore >= 3;
-    if (tokens.length <= 4) return matchedTokens >= 2 && totalScore >= 4;
-    return matchedTokens >= Math.ceil(tokens.length / 2) && totalScore >= 5;
+    // Повышаем пороги — меньше «мусора» в результатах
+    if (tokens.length === 1) return totalScore >= 3;
+    if (tokens.length === 2) return matchedTokens >= 1 && totalScore >= 4;
+    if (tokens.length <= 4) return matchedTokens >= 2 && totalScore >= 5;
+    return matchedTokens >= Math.ceil(tokens.length / 2) && totalScore >= 6;
   }
   function getFilteredEmployees() {
     let result = employees.slice();
@@ -1219,12 +1285,23 @@
     let allCategories = ["Все направления", ...new Set(employees.map(e => e.category))];
     const categoriesToShow = allCategories.filter(cat => cat !== "Документы и право");
     horizontalCatContainer.innerHTML = categoriesToShow.map(cat => `<button class="cat-horiz-btn ${state.category === cat ? 'active' : ''}" data-category="${cat}">${cat}</button>`).join("");
-    horizontalCatContainer.querySelectorAll("[data-category]").forEach(btn => { btn.addEventListener("click", () => { state.category = btn.dataset.category; state.activeScenario = null; state.textSearch = ""; state.selectedTeam = null; state.selectedEmployeeId = null; globalSearchInput.value = ""; closeDetailPanel(); updateUI(); renderFilters(); }); });
+    horizontalCatContainer.querySelectorAll("[data-category]").forEach(btn => { btn.addEventListener("click", () => { state.category = btn.dataset.category; state.activeScenario = null; state.selectedTeam = null; state.selectedEmployeeId = null; closeDetailPanel(); updateUI(); renderFilters(); }); });
     scenarioListDiv.innerHTML = Object.entries(scenarioDefinitions).map(([key, sc]) => `<button class="scenario-btn ${state.activeScenario?.label === sc.label ? 'active' : ''}" data-scenario="${key}">⚡ ${sc.label}</button>`).join("");
     scenarioListDiv.querySelectorAll("[data-scenario]").forEach(btn => { btn.addEventListener("click", () => applyScenario(btn.dataset.scenario)); });
   }
 
-  globalSearchInput.addEventListener("input", (e) => { const val = e.target.value.trim(); state.textSearch = val; state.activeScenario = null; state.selectedTeam = null; state.selectedEmployeeId = null; state.category = "Все направления"; closeDetailPanel(); updateUI(); renderFilters(); });
+  globalSearchInput.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    state.textSearch = val;
+    state.activeScenario = null;
+    state.selectedTeam = null;
+    state.selectedEmployeeId = null;
+    // Сбрасываем категорию только если поле очистили полностью
+    if (!val) state.category = "Все направления";
+    closeDetailPanel();
+    updateUI();
+    renderFilters();
+  });
   document.getElementById("resetFiltersBtn").addEventListener("click", resetAllFilters);
   backBtn.addEventListener("click", backToTeams);
   detailCloseBtn.addEventListener("click", closeDetailPanel);
@@ -1236,4 +1313,3 @@
 </script>
 </body>
 </html>
-```
