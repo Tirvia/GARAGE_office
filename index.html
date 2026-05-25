@@ -1060,6 +1060,7 @@
     selectedEmployeeId: null
   };
 
+  // БЫСТРЫЕ СЦЕНАРИИ — добавлена кнопка "Вопросы по ТК"
   const scenarioDefinitions = {
     escalation: { label: "Сложные ситуации", priorityIds: ["yulia", "victoria"], category: "Управление" },
     instructions: { label: "Инструкции / Стандарты", priorityIds: ["anna_fed"], category: "Команда и обучение" },
@@ -1068,24 +1069,22 @@
     equipment: { label: "Поломка оборудования", priorityIds: ["kirill_tech", "dmitry_it", "maxim_it"], category: "Техника и системы" },
     guest: { label: "Акция или отзыв гостя", priorityIds: ["tatiana_cur", "evgeniy_mat", "leonid_gec", "inna_art"], category: "Гости и продажи" },
     delivery: { label: "Доставка / заказ", priorityIds: ["marina_alg", "tatiana_cur"], category: "Гости и продажи" },
-    cameras: { label: "Камеры / видеозапись", priorityIds: ["natalia_kud", "dmitry_it"], category: "Контроль и качество" }
+    cameras: { label: "Камеры / видеозапись", priorityIds: ["natalia_kud", "dmitry_it"], category: "Контроль и качество" },
+    techCardQuestions: { label: "Вопросы по ТК", priorityIds: ["vlad_fil", "valeriya_kuch", "maria_nikit", "alex_ivan"], category: "Кухня и разработка" }
   };
 
   function normalizeText(text) {
     return (text || "").toLowerCase().replace(/ё/g, "е").replace(/["'()]/g, " ").replace(/\s+/g, " ").trim();
   }
 
-  // Слова, которые не нужно стеммировать (не склоняются или короткие значимые)
   const NO_STEM_WORDS = new Set(["меню", "iiko", "crm", "erp", "эдо", "тк", "фк", "пф"]);
 
   function stemToken(token) {
     if (NO_STEM_WORDS.has(token)) return token;
-    // Не трогаем слова длиной ≤ 3 символа — слишком короткие, стеммер их ломает
     if (token.length <= 3) return token;
     const stemmed = token
       .replace(/(иями|ями|ами|ого|ему|ому|ыми|ими|ией|ий|ый|ой|ая|ое|ые|ие|ов|ев|ам|ям|ах|ях|ия|ья|ью|ию|ть|ти|ться|ся)$/u, "")
       .replace(/(а|я|ы|и|е|о|у|ю)$/u, "");
-    // Если после стеммирования осталось слишком мало — берём оригинал
     return stemmed.length >= 3 ? stemmed : token;
   }
 
@@ -1094,14 +1093,11 @@
   }
 
   function buildEmployeeHaystack(emp) {
-    // Имя, команда, должность, категория получают отдельный «тяжёлый» блок (повторяем для веса)
     const core = [emp.name, emp.originalTeam, emp.team, emp.position, emp.category, emp.cafes || ""];
     const details = [...(emp.tasks || []), ...(emp.questions || [])];
     return normalizeText([...core, ...core, ...details].join(" "));
   }
 
-  // Синонимы: ключ → что ещё искать в стоге сена.
-  // ВАЖНО: значения должны быть достаточно специфичными, чтобы не «пробивать» нерелевантных
   const synonyms = {
     "камер":      ["видеозапис", "видеонаблюден"],
     "ремонт":     ["поломк", "неисправност"],
@@ -1121,7 +1117,6 @@
     "вакансий":   ["рекрутинг", "подбор"],
     "рекрутинг":  ["вакансий", "подбор"],
     "аудит":      ["проверк", "контрол"],
-    // "меню" → только «разработка меню», а не все где упоминается «блюд»
     "меню":       ["разработк меню", "команда разработк"],
     "сайт":       ["выгрузк"],
     "почт":       ["письм", "документооборот"],
@@ -1131,27 +1126,22 @@
     "it":         ["компьютер", "техподдержк"],
     "компьютер":  ["it", "техподдержк"],
     "обучени":    ["стандарт", "адаптац"],
-    "жалоб":      ["отзыв", "конфликт"],
     "контрол":    ["аудит", "проверк"],
     "кадр":       ["hr", "персонал", "отпуск"],
-    "hr":         ["кадр", "персонал"]
+    "hr":         ["кадр", "персонал"],
+    "тк":         ["техкарт", "технологическ", "рецептур"]
   };
 
   function matchTokenScore(haystack, token) {
-    // Точное вхождение токена как отдельного слова — максимальный балл
     const wordBoundary = new RegExp(`(^|\\s)${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`);
     if (wordBoundary.test(haystack)) return 4;
-    // Просто вхождение подстроки
     if (haystack.includes(token)) return 3;
-    // Синонимы
     const syns = synonyms[token] || [];
     for (let syn of syns) {
       if (syn.includes(" ")) {
-        // Мультислово: все части должны присутствовать рядом
         if (haystack.includes(syn)) return 2;
       } else if (haystack.includes(syn)) return 2;
     }
-    // Нечёткое: корень минус 1 символ (только для длинных токенов)
     if (token.length >= 5) {
       const base = token.slice(0, -1);
       if (base.length > 3 && haystack.includes(base)) return 1;
@@ -1170,12 +1160,12 @@
       if (score > 0) matchedTokens++;
       totalScore += score;
     });
-    // Повышаем пороги — меньше «мусора» в результатах
     if (tokens.length === 1) return totalScore >= 3;
     if (tokens.length === 2) return matchedTokens >= 1 && totalScore >= 4;
     if (tokens.length <= 4) return matchedTokens >= 2 && totalScore >= 5;
     return matchedTokens >= Math.ceil(tokens.length / 2) && totalScore >= 6;
   }
+
   function getFilteredEmployees() {
     let result = employees.slice();
     if (state.selectedTeam) result = result.filter(emp => emp.team === state.selectedTeam);
@@ -1195,7 +1185,7 @@
     return result;
   }
 
-  // DOM references and event handlers (same logic as before, but shortened for brevity – fully functional)
+  // DOM references
   const teamsGridDiv = document.getElementById("teamsGrid");
   const employeesGridDiv = document.getElementById("employeesGrid");
   const backBtn = document.getElementById("backToTeamsBtn");
@@ -1270,6 +1260,7 @@
     if (hasActiveFilters) { teamsGridDiv.style.display = "none"; employeesGridDiv.classList.add("visible"); backBtn.style.display = "inline-flex"; renderEmployees(); } else { teamsGridDiv.style.display = "grid"; employeesGridDiv.classList.remove("visible"); backBtn.style.display = "none"; closeDetailPanel(); renderTeams(); }
     updateFilterInfo();
   }
+
   function updateFilterInfo() {
     const badges = [];
     if (state.activeScenario) badges.push(`<span class="active-filter-badge">🎯 Сценарий: ${state.activeScenario.label}</span>`);
@@ -1278,9 +1269,11 @@
     if (state.selectedTeam) badges.push(`<span class="active-filter-badge">👥 ${state.selectedTeam}</span>`);
     filterInfoDiv.innerHTML = badges.length ? badges.join("") : "Активных фильтров нет";
   }
+
   function resetAllFilters() { state = { category: "Все направления", textSearch: "", activeScenario: null, selectedTeam: null, selectedEmployeeId: null }; globalSearchInput.value = ""; closeDetailPanel(); updateUI(); renderFilters(); }
   function applyScenario(key) { const scenario = scenarioDefinitions[key]; if (!scenario) return; state.activeScenario = scenario; state.textSearch = ""; state.selectedTeam = null; state.selectedEmployeeId = null; state.category = scenario.category || "Все направления"; globalSearchInput.value = ""; closeDetailPanel(); updateUI(); renderFilters(); }
   function backToTeams() { if (state.selectedTeam) { state.selectedTeam = null; state.selectedEmployeeId = null; closeDetailPanel(); updateUI(); renderFilters(); } else { resetAllFilters(); } }
+
   function renderFilters() {
     let allCategories = ["Все направления", ...new Set(employees.map(e => e.category))];
     const categoriesToShow = allCategories.filter(cat => cat !== "Документы и право");
@@ -1296,7 +1289,6 @@
     state.activeScenario = null;
     state.selectedTeam = null;
     state.selectedEmployeeId = null;
-    // Сбрасываем категорию только если поле очистили полностью
     if (!val) state.category = "Все направления";
     closeDetailPanel();
     updateUI();
